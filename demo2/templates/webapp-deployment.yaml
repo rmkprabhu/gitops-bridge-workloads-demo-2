@@ -29,18 +29,22 @@ spec:
       {{- end }}
       serviceAccountName: {{ include "demo2.serviceAccountName" . }}
       initContainers:
-      - name: install-dependencies
+      - name: setup-app
         image: "{{ .Values.webapp.image.repository }}:{{ .Values.webapp.image.tag }}"
         command: ['sh', '-c']
         args:
           - |
+            # Copy app files from ConfigMap to writable directory
+            cp /config-source/app.js /app/
+            cp /config-source/package.json /app/
+            # Install dependencies
             cd /app
             npm install --production
         volumeMounts:
         - name: app-code
           mountPath: /app
-        - name: node-modules
-          mountPath: /app/node_modules
+        - name: webapp-config-source
+          mountPath: /config-source
       containers:
       - name: webapp
         image: "{{ .Values.webapp.image.repository }}:{{ .Values.webapp.image.tag }}"
@@ -65,12 +69,12 @@ spec:
         volumeMounts:
         - name: app-code
           mountPath: /app
-        - name: node-modules
-          mountPath: /app/node_modules
         - name: webapp-config
           mountPath: /config
       volumes:
       - name: app-code
+        emptyDir: {}
+      - name: webapp-config-source
         configMap:
           name: {{ include "demo2.fullname" . }}-webapp
           items:
@@ -78,8 +82,6 @@ spec:
             path: app.js
           - key: package.json
             path: package.json
-      - name: node-modules
-        emptyDir: {}
       - name: webapp-config
         configMap:
           name: {{ include "demo2.fullname" . }}-webapp
