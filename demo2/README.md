@@ -5,6 +5,7 @@ A simple Helm chart for deploying Redis with custom configuration on Kubernetes.
 ## Features
 
 - ✅ **Redis 7.2** (Alpine-based for smaller image size)
+- ✅ **Web Interface** (Node.js app for managing Redis via browser)
 - ✅ **Custom Configuration** via ConfigMap
 - ✅ **Persistent Storage** with PVC support
 - ✅ **Health Probes** (liveness and readiness)
@@ -95,6 +96,30 @@ redis-cli -h localhost -p 6379
 kubectl run redis-client --rm --tty -i --restart='Never' \
   --image redis:7.2-alpine -- redis-cli -h my-redis
 ```
+
+### Web Interface (Recommended)
+
+The chart includes a beautiful web interface for managing Redis:
+
+```bash
+# Port forward the webapp service
+kubectl port-forward svc/my-redis-webapp 3000:3000
+
+# Open in your browser
+http://localhost:3000
+```
+
+**Web Interface Features:**
+- 🎨 Beautiful, modern UI with gradient design
+- 📝 Set and get key-value pairs
+- 🔍 Search and retrieve values by key
+- 📋 List all keys in the database
+- 🗑️ Delete keys with confirmation
+- ℹ️ View Redis server information
+- 💚 Real-time connection status
+- 📊 JSON-formatted output display
+
+To disable the web interface, set `webapp.enabled: false` in values.yaml.
 
 ## Uninstallation
 

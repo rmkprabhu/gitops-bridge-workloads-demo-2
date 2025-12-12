@@ -1,0 +1,89 @@
+{{- if .Values.webapp.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "demo2.fullname" . }}-webapp
+  labels:
+    {{- include "demo2.labels" . | nindent 4 }}
+    app.kubernetes.io/component: webapp
+spec:
+  replicas: {{ .Values.webapp.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "demo2.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: webapp
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/webapp-configmap.yaml") . | sha256sum }}
+      {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "demo2.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: webapp
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "demo2.serviceAccountName" . }}
+      initContainers:
+      - name: install-dependencies
+        image: "{{ .Values.webapp.image.repository }}:{{ .Values.webapp.image.tag }}"
+        command: ['sh', '-c']
+        args:
+          - |
+            cd /app
+            npm install --production
+        volumeMounts:
+        - name: app-code
+          mountPath: /app
+        - name: node-modules
+          mountPath: /app/node_modules
+      containers:
+      - name: webapp
+        image: "{{ .Values.webapp.image.repository }}:{{ .Values.webapp.image.tag }}"
+        imagePullPolicy: {{ .Values.webapp.image.pullPolicy }}
+        command: ['sh', '-c']
+        args:
+          - |
+            cd /app
+            mkdir -p public
+            cp /config/index.html public/
+            node app.js
+        ports:
+        - name: http
+          containerPort: 3000
+          protocol: TCP
+        livenessProbe:
+          {{- toYaml .Values.webapp.livenessProbe | nindent 12 }}
+        readinessProbe:
+          {{- toYaml .Values.webapp.readinessProbe | nindent 12 }}
+        resources:
+          {{- toYaml .Values.webapp.resources | nindent 12 }}
+        volumeMounts:
+        - name: app-code
+          mountPath: /app
+        - name: node-modules
+          mountPath: /app/node_modules
+        - name: webapp-config
+          mountPath: /config
+      volumes:
+      - name: app-code
+        configMap:
+          name: {{ include "demo2.fullname" . }}-webapp
+          items:
+          - key: app.js
+            path: app.js
+          - key: package.json
+            path: package.json
+      - name: node-modules
+        emptyDir: {}
+      - name: webapp-config
+        configMap:
+          name: {{ include "demo2.fullname" . }}-webapp
+          items:
+          - key: index.html
+            path: index.html
+{{- end }}

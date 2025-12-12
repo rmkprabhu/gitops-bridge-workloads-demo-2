@@ -1,0 +1,19 @@
+{{- if .Values.webapp.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "demo2.fullname" . }}-webapp
+  labels:
+    {{- include "demo2.labels" . | nindent 4 }}
+    app.kubernetes.io/component: webapp
+spec:
+  type: {{ .Values.webapp.service.type }}
+  ports:
+    - port: {{ .Values.webapp.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "demo2.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: webapp
+{{- end }}

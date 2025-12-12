@@ -30,3 +30,17 @@
   - SET mykey "Hello from Demo2"
   - GET mykey
   - PING
+
+{{- if .Values.webapp.enabled }}
+
+4. To access the Redis Web Interface:
+  kubectl --namespace {{ .Release.Namespace }} port-forward svc/{{ include "demo2.fullname" . }}-webapp {{ .Values.webapp.service.port }}:{{ .Values.webapp.service.port }}
+  
+  Then open your browser to: http://localhost:{{ .Values.webapp.service.port }}
+  
+  The web interface allows you to:
+  - Set and get key-value pairs
+  - List all keys in Redis
+  - Delete keys
+  - View Redis server information
+{{- end }}

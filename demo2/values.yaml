@@ -10,6 +10,37 @@ image:
   pullPolicy: IfNotPresent
   tag: "7.2-alpine"
 
+# Web application that connects to Redis
+webapp:
+  enabled: true
+  image:
+    repository: node
+    pullPolicy: IfNotPresent
+    tag: "20-alpine"
+  replicaCount: 1
+  service:
+    type: ClusterIP
+    port: 3000
+  resources:
+    limits:
+      cpu: 100m
+      memory: 128Mi
+    requests:
+      cpu: 50m
+      memory: 64Mi
+  livenessProbe:
+    httpGet:
+      path: /health
+      port: 3000
+    initialDelaySeconds: 10
+    periodSeconds: 10
+  readinessProbe:
+    httpGet:
+      path: /health
+      port: 3000
+    initialDelaySeconds: 5
+    periodSeconds: 5
+
 # ConfigMap for Redis configuration
 configMap:
   redisConfig: |
