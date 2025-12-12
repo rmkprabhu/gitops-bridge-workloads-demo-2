@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "demo2.fullname" . }}-test-connection"
+  labels:
+    {{- include "demo2.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": test
+spec:
+  containers:
+    - name: redis-test
+      image: redis:7.2-alpine
+      command: ['sh', '-c']
+      args:
+        - |
+          redis-cli -h {{ include "demo2.fullname" . }} ping | grep PONG &&
+          redis-cli -h {{ include "demo2.fullname" . }} set test-key "test-value" &&
+          redis-cli -h {{ include "demo2.fullname" . }} get test-key | grep "test-value"
+  restartPolicy: Never

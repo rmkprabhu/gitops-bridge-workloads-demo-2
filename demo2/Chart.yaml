@@ -1,0 +1,6 @@
+apiVersion: v2
+name: demo2
+description: A Helm chart for Redis with custom configuration
+type: application
+version: 0.1.0
+appVersion: "7.2"
